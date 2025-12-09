@@ -1,32 +1,17 @@
-## Server
 server:
   port: 9000
 
-## H2 Database (in-memory for testing)
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ums?serverTimezone=UTC&useLegacyDatetimeCode=false
+    username: root
+    password: passw
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-  h2:
-    console:
-      enabled: true
 
-## MySQL (commented out)
-# spring:
-#   datasource:
-#     driverClassName: com.mysql.cj.jdbc.Driver
-#     url: jdbc:mysql://0.0.0.0:3306/ums?serverTimezone=UTC&useLegacyDatetimeCode=false
-#     username: root
-#     password: passw
-
-## GitHub OAuth2
-spring:
   security:
     oauth2:
       client:
