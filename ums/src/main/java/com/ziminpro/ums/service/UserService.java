@@ -1,23 +1,22 @@
 package com.ziminpro.ums.service;
 
-import com.ziminpro.ums.model.User;
+import com.ziminpro.ums.dtos.User;
+import com.ziminpro.ums.dtos.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 public class UserService {
 
+    // Map to store users by email/name
     private final Map<String, User> users = new HashMap<>();
-    private Long idCounter = 1L;
 
-    // Map to store tokens and their expiry
+    // Map to store UUID tokens and expiry
     private final Map<String, TokenInfo> tokens = new HashMap<>();
 
     @Autowired
@@ -25,12 +24,19 @@ public class UserService {
 
     // Save a new user (local login)
     public void saveUser(User user) {
-        user.setId(idCounter++);
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // hash password
-        users.put(user.getUsername(), user);
+        // Generate UUID for id if not set
+        if (user.getId() == null) {
+            user.setId(UUID.randomUUID());
+        }
+
+        // Hash the password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Save user in map (key = name)
+        users.put(user.getName(), user);
     }
 
-    // Find user by username
+    // Find user by username (name)
     public User findByUsername(String username) {
         return users.get(username);
     }
@@ -43,29 +49,37 @@ public class UserService {
 
     // -------------------- OAuth2 / Token Methods --------------------
 
-    // Generate a UUID token for a user after OAuth login
+    // Generate a UUID token for a user
     public String generateToken(User user) {
         String token = UUID.randomUUID().toString();
-        Instant expiry = Instant.now().plus(Duration.ofMinutes(15)); // 15-minute expiry
-        tokens.put(token, new TokenInfo(user.getUsername(), expiry));
+        Instant expiry = Instant.now().plus(Duration.ofMinutes(15));
+        tokens.put(token, new TokenInfo(user.getName(), expiry));
         return token;
     }
 
     // Validate a token and return associated username if valid
     public String validateToken(String token) {
         TokenInfo info = tokens.get(token);
-        if (info == null) return null;  // token not found
+        if (info == null) return null;
 
         if (Instant.now().isAfter(info.getExpiry())) {
-            tokens.remove(token);  // remove expired token
+            tokens.remove(token);
             return null;
         }
+
         return info.getUsername();
     }
 
-    // Optional: remove token manually (logout)
+    // Revoke a token (logout)
     public void revokeToken(String token) {
         tokens.remove(token);
+    }
+
+    // Add a role to a user
+    public void addRole(User user, Roles role) {
+        if (user != null) {
+            user.addRole(role);
+        }
     }
 
     // Inner class to store token info
