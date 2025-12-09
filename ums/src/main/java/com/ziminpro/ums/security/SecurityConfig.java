@@ -15,17 +15,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/", 
-                    "/auth/**", 
-                    "/oauth2/**",
-                    "/loginSuccess"
-                ).permitAll()
-                .anyRequest().authenticated()
+                    .requestMatchers("/", "/auth/register", "/auth/login", "/oauth2/**").permitAll()
+                    .anyRequest().authenticated()
             )
 
+            // GitHub OAuth login
             .oauth2Login(oauth ->
-                oauth.defaultSuccessUrl("/loginSuccess", true)
+                    oauth.defaultSuccessUrl("/loginSuccess", true)
             );
 
         return http.build();
