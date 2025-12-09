@@ -3,62 +3,52 @@ package com.ziminpro.ums.controllers;
 import com.ziminpro.ums.dtos.User;
 import com.ziminpro.ums.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
-public class AuthController {
+public class OAuthController {
 
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @GetMapping("/loginSuccess")
+    public Map<String, Object> loginSuccess(OAuth2User oAuthUser) {
 
-    // ------------------ Register ------------------
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        if (userService.findByEmail(user.getEmail()) != null) {
-            return ResponseEntity.badRequest().body("Email already registered");
+        // Get GitHub username
+        String email = oAuthUser.getAttribute("email");
+        String name = oAuthUser.getAttribute("login");
+
+        if (email == null && name == null) {
+            return Map.of("error", "GitHub did not return any usable identity");
         }
 
-        // Save new user
-        userService.saveUser(user);
-        return ResponseEntity.ok("User registered successfully");
-    }
+        // If GitHub gives only username, build a fake email
+        if (email == null) {
+            email = name + "@github-user.local";
+        }
 
-    // ------------------ Login ------------------
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
-        String email = loginData.get("email");
-        String password = loginData.get("password");
-
+        // Create or load user
         User user = userService.findByEmail(email);
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
+            user.setName(name != null ? name : email);
+            user.setPassword("OAUTH");
+            userService.saveUser(user);
         }
 
         // Generate token
         String token = userService.generateToken(user);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-        response.put("email", user.getEmail());
-        return ResponseEntity.ok(response);
-    }
-
-    // ------------------ Logout ------------------
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String tokenHeader) {
-        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-            String token = tokenHeader.substring(7);
-            userService.revokeToken(token);
-        }
-        return ResponseEntity.ok("Logged out successfully");
+        return Map.of(
+                "message", "OAuth login successful",
+                "email", email,
+                "token", token
+        );
     }
 }
+
