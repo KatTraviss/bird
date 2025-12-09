@@ -73,6 +73,13 @@
             <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
+             
+       <!-- H2 Database for in-memory testing -->
+       <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Spring Boot Test -->
         <dependency>
