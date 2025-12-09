@@ -110,7 +110,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!-- IMPORTANT: This fixes your "Unable to find main class" error -->
+                    
                     <mainClass>com.ziminpro.ums.UmsApplication</mainClass>
                 </configuration>
             </plugin>
