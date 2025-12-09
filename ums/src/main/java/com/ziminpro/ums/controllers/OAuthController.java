@@ -3,9 +3,11 @@ package com.ziminpro.ums.controllers;
 import com.ziminpro.ums.model.User;
 import com.ziminpro.ums.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.Map;
 
 @RestController
 public class OAuthController {
@@ -14,27 +16,36 @@ public class OAuthController {
     private UserService userService;
 
     @GetMapping("/loginSuccess")
-    public String loginSuccess(OAuth2User oAuth2User) {
+    public Map<String, Object> loginSuccess(OAuth2User oAuthUser) {
 
-        String username = oAuth2User.getAttribute("login");
-        String email = oAuth2User.getAttribute("email");
-
+        // Extract GitHub username/email
+        String username = oAuthUser.getAttribute("login");
         if (username == null) {
-            return "Login failed: GitHub did not return username.";
+            username = oAuthUser.getAttribute("email");
         }
 
-        User existing = userService.findByUsername(username);
+        if (username == null) {
+            return Map.of(
+                    "message", "Login failed: GitHub did not return username or email"
+            );
+        }
 
-        if (existing == null) {
-            User user = new User();
+        // Check if user exists; create if not
+        User user = userService.findByUsername(username);
+        if (user == null) {
+            user = new User();
             user.setUsername(username);
-            user.setEmail(email);
+            user.setPassword("OAUTH"); // placeholder, not used
             userService.saveUser(user);
         }
 
-        User finalUser = userService.findByUsername(username);
-        String token = userService.generateToken(finalUser);
+        // Generate UUID token
+        String token = userService.generateToken(user);
 
-        return "OAuth login successful. Token: " + token;
+        return Map.of(
+                "message", "OAuth login successful",
+                "username", username,
+                "token", token
+        );
     }
 }
