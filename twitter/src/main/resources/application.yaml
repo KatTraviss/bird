@@ -3,27 +3,23 @@ server:
 
 spring:
   datasource:
-    driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/ums?serverTimezone=UTC&useLegacyDatetimeCode=false
-    username: root
-    password: passw
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
 
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: your-github-client-id
-            client-secret: your-github-client-secret
-            scope: read:user
-        provider:
-          github:
-            authorization-uri: https://github.com/login/oauth/authorize
-            token-uri: https://github.com/login/oauth/access_token
-            user-info-uri: https://api.github.com/user
-            user-name-attribute: login
-
-jwt:
-  secret: "supersecretkey123"
-  expiration: 3600000   # 1 hour in milliseconds
+security:
+  oauth2:
+    client:
+      registration:
+        github:
+          client-id: Ov23limcolzShcNmvpSX
+          client-secret: 8844f618fff7bbf63fd8dedd1dedd823977188fb
+          scope: user:email
