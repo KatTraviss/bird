@@ -14,14 +14,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            // Allow everyone to hit the home/login endpoints
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/oauth2/**").permitAll()
+                .requestMatchers(
+                    "/", 
+                    "/auth/**", 
+                    "/oauth2/**",
+                    "/loginSuccess"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
 
-            // Enable GitHub OAuth2 Login
-            .oauth2Login(oauth -> 
+            .oauth2Login(oauth ->
                 oauth.defaultSuccessUrl("/loginSuccess", true)
             );
 
