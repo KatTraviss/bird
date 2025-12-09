@@ -1,0 +1,43 @@
+<div class="container unauthenticated">
+    With GitHub: <a href="/oauth2/authorization/github">click here</a>
+</div>
+
+<div class="container authenticated" style="display:none">
+    Logged in as: <span id="user-name"></span> (<span id="user-login"></span>)
+    <div>
+        <button onClick="logout()" class="btn btn-primary">Logout</button>
+    </div>
+</div>
+
+<script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="/webjars/js-cookie/js.cookie.js"></script>
+<script type="text/javascript">
+    function showUser(user) {
+        $("#user-name").text(user.name || 'Unknown');
+        $("#user-login").text(user.login || 'Unknown');
+        $(".unauthenticated").hide();
+        $(".authenticated").show();
+    }
+
+    function fetchUser() {
+        $.get("/login-success", function(user) {
+            if (user && user.name) {
+                showUser(user);
+            }
+        });
+    }
+
+    function logout() {
+        $.post("/logout", function() {
+            $("#user-name").text('');
+            $("#user-login").text('');
+            $(".unauthenticated").show();
+            $(".authenticated").hide();
+        });
+    }
+
+    // Call fetchUser when page loads
+    $(document).ready(function() {
+        fetchUser();
+    });
+</script>
